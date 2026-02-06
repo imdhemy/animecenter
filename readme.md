@@ -21,29 +21,23 @@ We don't host any illegal content on our server.
 
 ## Development
 
-### Requirements
-
-1. [Git](https://git-scm.com/download)
-2. [VirtualBox 5.x](https://www.virtualbox.org/wiki/Downloads)
-3. [Vagrant 1.8.x](https://www.vagrantup.com/downloads.html)
-
 ### Setup
 
-1. Clone this repository: `git clone -b develop --recursive https://github.com/animecenter/animecenter.git`.
-2. Go to your terminal, and change directory to the animecenter repository with `cd path/to/animecenter/folder/location`.
-3. If you don't have a SSH key, run `ssh-keygen -t rsa -C "you@homestead"`.
-4. Run `vagrant box add laravel/homestead --provider=virtualbox`.
-    - Windows: run this extra command `vagrant plugin install vagrant-winnfsd`.
-5. Run `vagrant up`.
-5. Add `192.168.10.10 animecenter.app` to your computer's `hosts` file.
-    - On Mac and Linux, this file is located at `/etc/hosts`.
-    - On Windows, it is located at `C:\Windows\System32\drivers\etc\hosts`.
-6. Visit animecenter.app in the browser.
-7. Start developing!
+> [!NOTE]
+> We are switching from Homestead to Docker. Only docker instructions are up to date.
+
+- Clone the repository.
+- Run `docker compose up -d` to start the containers.
+- Run migrations and seeders with `docker compose exec app php artisan migrate --seed`.
+
+#### TODO
+
+- ⏱️[ ] Set up JS development environment.
+- ⏱️[ ] Find replacement for `league/flysystem-dropbox`
 
 ### Instructions
 
-SSH into your Homestead box with `vagrant ssh`, go to folder containing 
+SSH into your Homestead box with `vagrant ssh`, go to folder containing
 the code with `cd /home/vagrant/animecenter` and run the following command: `gulp watch`.
 
 - If you want to modify CSS, you can modify the .scss files inside resources/assets/sass
@@ -58,8 +52,8 @@ Everyone is welcome to contribute. You can do it in the following ways:
 
 - If you find a bug, make an issue describing how you came upon it and what os, browser, etc you are using.
 
-- If you want to contribute code, fork the project, branch off of the develop branch and pick an issue to solve. 
-When you are done, make a pull request. There is a higher chance for a feature to be accepted if its tested.
+- If you want to contribute code, fork the project, branch off of the develop branch and pick an issue to solve.
+  When you are done, make a pull request. There is a higher chance for a feature to be accepted if its tested.
 
 ## To Do
 
@@ -72,5 +66,5 @@ When you are done, make a pull request. There is a higher chance for a feature t
 ## License
 
 animecenter is licensed under the [CPAL-1.0](http://opensource.org/licenses/CPAL-1.0) license.
-For better understanding of what you can do with the codebase visit 
+For better understanding of what you can do with the codebase visit
 [tldrlegal.com](https://tldrlegal.com/license/common-public-attribution-license-version-1.0-(cpal-1.0)).

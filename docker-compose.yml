@@ -1,0 +1,35 @@
+services:
+  app:
+    container_name: anime_center_app
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/app
+    networks:
+      - anime_center_network
+
+  mysql:
+    container_name: anime_center_mysql
+    image: mysql:5.6
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_DATABASE:-animecenter}
+      MYSQL_USER: ${DB_USERNAME:-animecenter_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "3306:3306"
+    networks:
+      - anime_center_network
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+networks:
+  anime_center_network:
+    driver: bridge
+
+volumes:
+  mysql_data:

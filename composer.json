@@ -12,7 +12,6 @@
     "graham-campbell/htmlmin": "~4",
     "rap2hpoutre/laravel-log-viewer": "~0.6",
     "backup-manager/laravel": "~1.1",
-    "league/flysystem-dropbox": "~1.0",
     "chumper/datatable": "dev-develop",
     "khill/fontawesomephp": "~1.1",
     "laravelcollective/html": "~5.2"
