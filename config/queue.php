@@ -12,7 +12,7 @@ return [
     | syntax for each one. Here you may set the default queue driver.
     |
     | Supported: "null", "sync", "database", "beanstalkd",
-    |            "sqs", "iron", "redis"
+    |            "sqs", "redis"
     |
     */
 
@@ -37,8 +37,8 @@ return [
 
         'database' => [
             'driver' => 'database',
-            'table' => 'jobs',
-            'queue' => 'default',
+            'table'  => 'jobs',
+            'queue'  => 'default',
             'expire' => 60,
         ],
 
@@ -67,10 +67,10 @@ return [
         ],
 
         'redis' => [
-            'driver' => 'redis',
+            'driver'     => 'redis',
             'connection' => 'default',
-            'queue'  => 'default',
-            'expire' => 60,
+            'queue'      => 'default',
+            'expire'     => 60,
         ],
 
     ],
@@ -87,7 +87,8 @@ return [
     */
 
     'failed' => [
-        'database' => 'mysql', 'table' => 'failed_jobs',
+        'database' => 'mysql',
+        'table'    => 'failed_jobs',
     ],
 
 ];

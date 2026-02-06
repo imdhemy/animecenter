@@ -38,7 +38,7 @@ class AnimeSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        link = response.xpath('//*[@id="content"]/div[3]/div[1]/div/span/a[last()]/@href').extract()
+        link = response.xpath('(//*[@id="content"]/div[@class="borderClass"])[1]/div/span/a[last()]/@href').extract()
         if "show" not in response.url and link:
             pages_number = int(link[0].split('&show=')[1]) / 50 + 1
             for x in range(0, pages_number):
@@ -58,11 +58,13 @@ class AnimeSpider(scrapy.Spider):
             '//div[preceding-sibling::h2="Alternative Titles" and following-sibling::h2="Information"]//text()'
         ).extract() if '\n    ' not in x]).replace('---div--- ', '---union---').replace('\n  ', '')
         item['type'] = response.xpath('//span[text()="Type:"]/../text()').extract()[1].strip()
-        item['episodes'] = response.xpath('//span[text()="Episodes:"]/../text()').extract()[1].strip()
+        item['number_of_episodes'] = response.xpath('//span[text()="Episodes:"]/../text()').extract()[1].strip()
         item['status'] = response.xpath('//span[text()="Status:"]/../text()').extract()[1].strip()
         item['dates'] = response.xpath('//span[text()="Aired:"]/../text()').extract()[1].strip().replace('  ', ' ')
-        item['producers'] = response.xpath('//span[text()="Producers:"]/../a/text()').extract()
-        item['genres'] = response.xpath('//span[text()="Genres:"]/../span/a/text()').extract()
+        item['producers'] = [response.xpath('//span[text()="Producers:"]/../a/text()').extract()[0].replace(
+            'add some', ''
+        )]
+        item['genres'] = response.xpath('//span[text()="Genres:"]/../a/text()').extract()
         item['duration'] = response.xpath('//span[text()="Duration:"]/../text()').extract()[1].strip()
         item['classification'] = response.xpath('//span[text()="Rating:"]/../text()').extract()[1].strip()
         relations = []
@@ -80,9 +82,6 @@ class AnimeSpider(scrapy.Spider):
             '//text()[preceding-sibling::h2[text()="Ending Theme"] and following-sibling::br[6]]'
         ).extract() + response.xpath('//div[@id="edTheme"]/text()').extract())
         image_url = response.xpath('//div[@style="text-align: center;"]/a/img/@src').extract()
-        if image_url:
-            item['image_url'] = image_url
-        else:
-            item['image_url'] = response.xpath('//*[@id="content"]/table/tr/td[1]/div[1]/img/@src').extract()
+        item['image_url'] = image_url if image_url else \
+            response.xpath('//*[@id="content"]/table/tr/td[1]/div[1]/img/@src').extract()
         yield item
-

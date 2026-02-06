@@ -29,8 +29,12 @@ return [
         'region' => 'us-east-1',
     ],
 
+    'sparkpost' => [
+        'secret' => env('SPARKPOST_SECRET'),
+    ],
+
     'stripe' => [
-        'model'  => App\Users\User::class,
+        'model'  => AC\Models\User::class,
         'key'    => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
     ],

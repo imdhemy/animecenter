@@ -11,11 +11,30 @@
 |
 */
 
-$factory->define(App\Users\User::class, function (Faker\Generator $faker) {
+$factory->define(AC\Models\Anime::class, function (Faker\Generator $faker) {
     return [
-        'username' => $faker->name,
-        'email' => $faker->email,
-        'password' => bcrypt(str_random(10)),
+        'mal_id'             => rand(1, 20000),
+        'title'              => $faker->unique()->name,
+        'slug'               => $faker->unique()->slug,
+        'synopsis'           => rand(0, 1) === 1 ? $faker->text : null,
+        'type_id'            => rand(0, 1) === 1 ? rand(1, 7) : null,
+        'number_of_episodes' => rand(0, 1) === 1 ? rand(1, 24) : null,
+        'status_id'          => rand(1, 3),
+        'release_date'       => $faker->date(),
+        'end_date'           => rand(0, 1) === 1 ? $faker->date() : null,
+        'duration'           => rand(0, 1) === 1 ? $faker->time() : null,
+        'calendar_season'    => rand(0, 1) === 1 ? ['Spring', 'Summer', 'Fall', 'Winter'][rand(0, 3)] : null,
+        'classification_id'  => rand(0, 1) === 1 ? rand(1, 6) : null,
+        'active'             => rand(0, 1),
+    ];
+});
+
+$factory->define(AC\Models\User::class, function (Faker\Generator $faker) {
+    return [
+        'username'       => $faker->unique()->userName,
+        'email'          => $faker->unique()->safeEmail,
+        'password'       => bcrypt(str_random(10)),
         'remember_token' => str_random(10),
+        'active'         => rand(0, 1),
     ];
 });

@@ -1,0 +1,114 @@
+.nav-tabs {
+  background-color: $color-white;
+  box-shadow: 1px 1px 1px $color-black-shadow;
+
+  .nav-link {
+    border-radius: 0;
+    &:focus,
+    &:hover {
+      border-color: transparent;
+    }
+
+    &.active,
+    &.active:focus,
+    &.active:hover {
+      color: $color-white;
+      background-color: $color-dark-purple;
+      border-color: transparent;
+    }
+  }
+
+  .nav-item {
+    &.open .nav-link,
+    &.open .nav-link:focus,
+    &.open .nav-link:hover {
+      color: $color-white;
+      background-color: $color-purple;
+    }
+  }
+}
+
+.nav-tabs .nav-item+.nav-item {
+  margin-left: 0;
+}
+
+
+.tab-content {
+  float: left;
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: $color-white;
+  box-shadow: 1px 1px 1px 1px $color-black-shadow;
+}
+
+// EPISODE TABS
+.nav-tabs-episode {
+  margin-bottom: 2.8rem;
+  li {
+    float: left;
+    margin: 0.6rem 0.1rem 0.7rem 0;
+  }
+
+  a {
+    background-color: $color-purple;
+    color: $color-white;
+    font-weight: bold;
+    padding: 1rem;
+    font-size: 0.7rem;
+
+    &:hover, &:active {
+      background-color: $color-dark-purple;
+    }
+
+  }
+}
+
+@include media-breakpoint-down(sm) {
+
+  .nav-tabs-episode {
+    margin-bottom: 0;
+    li {
+      float: none;
+      margin: 0.1rem 0 0;
+    }
+
+    a {
+      background-color: $color-purple;
+      color: $color-white;
+      display: block;
+      font-weight: bold;
+      padding: 0.6rem;
+      font-size: 0.7rem;
+
+      &:hover, &:active {
+        background-color: $color-dark-purple;
+      }
+
+    }
+  }
+
+  .nav-tabs {
+    .nav-item {
+      float: left;
+      margin-bottom: -1px;
+      width: 33.33%;
+    }
+  }
+}
+
+
+@include media-breakpoint-down(xs) {
+  .nav-tabs {
+    .nav-link {
+      padding: 0.5em;
+      font-size: 12px;
+    }
+  }
+}
+
+
+
+
+
+

@@ -1,0 +1,103 @@
+<?php
+
+namespace AC\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * AC\Models\Title.
+ *
+ * @property int $id
+ * @property string $title
+ * @property string $language
+ * @property int $titleable_id
+ * @property string $titleable_type
+ * @property bool $active
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
+ * @property-read \ $titles
+ *
+ * @method static \Illuminate\Database\Query\Builder|Title whereId($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereTitle($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereLanguage($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereTitleableId($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereTitleableType($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereActive($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereCreatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|Title whereDeletedAt($value)
+ */
+class Title extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'titles';
+
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = true;
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var string[]
+     */
+    protected $hidden = [''];
+
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var string[]
+     */
+    protected $guarded = ['created_at', 'updated_at', 'deleted_at'];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var string[]
+     */
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+
+    /**
+     * The attributes that should be casted to native types.
+     *
+     * @var string[]
+     */
+    protected $casts = [
+        'id'             => 'int',
+        'title'          => 'string',
+        'language'       => 'string',
+        'titleable_id'   => 'int',
+        'titleable_type' => 'string',
+        'active'         => 'boolean',
+    ];
+
+    /**
+     * The validation rules.
+     *
+     * @var string[]
+     */
+    public $rules = [
+        'id' => 'required|integer|min:1',
+    ];
+
+    /**
+     * Get all of the owning viewable models.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function titles()
+    {
+        return $this->morphTo();
+    }
+}

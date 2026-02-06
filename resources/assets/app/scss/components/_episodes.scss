@@ -1,0 +1,98 @@
+.embed-responsive-holder {
+  padding: 30%;
+}
+
+.episode-item {
+  float: left;
+}
+
+.episodes__holder {
+  color: $color-night-rider;
+  background: $color-white;
+  border-collapse: separate;
+  display: block;
+  padding: 0.8rem;
+
+  &:hover {
+    color: $color-blue;
+    text-decoration: none;
+  }
+}
+
+.episodes__title {
+  display: block;
+  font-weight: bold;
+  font-size: 0.8rem;
+  margin: 0.4rem 0;
+}
+
+.episode__number {
+  display: block;
+}
+
+.episode__details {
+  color: $color-white;
+  padding: 0.30rem 0.60rem;
+  text-transform: uppercase;
+}
+
+.episode__time {
+  color: $color-night-rider;
+  display: block;
+  font-style: italic;
+  margin: 0.30rem 0 0;
+}
+
+@include media-breakpoint-only(xs) {
+  .episode-item {
+    width: 49%;
+    margin: 0 2% 2% 0;
+
+    &:nth-child(2n) {
+      margin-right: 0;
+    }
+  }
+}
+@include media-breakpoint-only(sm) {
+  .episode-item {
+    width: 32%;
+    margin: 0 2% 2% 0;
+
+    &:nth-child(3n) {
+      margin-right: 0;
+    }
+  }
+}
+
+@include media-breakpoint-only(md) {
+  .episode-item {
+    width: 30%;
+    margin: 0 1% 1% 0;
+
+    &:nth-child(3n) {
+      margin-right: 0;
+    }
+  }
+}
+
+@include media-breakpoint-only(lg) {
+  .episode-item {
+    width: 32.33%;
+    margin: 0 1.5% 1.5% 0;
+
+    &:nth-child(3n) {
+      margin-right: 0;
+    }
+  }
+}
+
+@include media-breakpoint-up(xl) {
+  .episode-item {
+    width: 24%;
+    margin: 0 1% 1% 0;
+
+    &:nth-child(4n) {
+      margin: 0 0 1%;
+    }
+  }
+}

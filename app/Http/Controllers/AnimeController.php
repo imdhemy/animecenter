@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace AC\Http\Controllers;
 
-use App\Anime\Anime;
-use App\Episodes\Episode;
-use App\Options\Option;
-use App\Pages\Page;
+use AC\Models\Meta;
+use AC\Models\Mirror;
+use AC\Repositories\EloquentAnimeRepository as Anime;
+use AC\Repositories\EloquentClassificationRepository as Classification;
+use AC\Repositories\EloquentEpisodeRepository as Episode;
+use AC\Repositories\EloquentGenreRepository as Genre;
+use AC\Repositories\EloquentProducerRepository as Producer;
+use AC\Repositories\EloquentTypeRepository as Type;
+use Illuminate\Http\Request;
 
-/**
- * @property  data
- */
 class AnimeController extends Controller
 {
     protected $data;
@@ -20,273 +22,164 @@ class AnimeController extends Controller
     private $anime;
 
     /**
+     * @var Classification
+     */
+    private $classification;
+
+    /**
      * @var Episode
      */
     private $episode;
 
     /**
-     * @var Option
+     * @var Genre
      */
-    private $option;
+    private $genre;
 
     /**
-     * @var Page
+     * @var Producer
      */
-    private $page;
+    private $producer;
 
     /**
-     * @param Anime $anime
-     * @param Episode $episode
-     * @param Option $option
-     * @param Page $page
+     * @var Type
      */
-    public function __construct(Anime $anime, Episode $episode, Option $option, Page $page)
+    private $type;
+
+    /**
+     * @var Mirror
+     */
+    private $mirror;
+
+    /**
+     * @var Meta
+     */
+    private $meta;
+
+    /**
+     * @param Anime          $anime
+     * @param Classification $classification
+     * @param Episode        $episode
+     * @param Genre          $genre
+     * @param Producer       $producer
+     * @param Type           $type
+     * @param Mirror         $mirror
+     * @param meta           $meta
+     */
+    public function __construct(Anime $anime, Classification $classification, Episode $episode, Genre $genre, Producer $producer, Type $type, Mirror $mirror, Meta $meta)
     {
         $this->anime = $anime;
+        $this->classification = $classification;
         $this->episode = $episode;
-        $this->option = $option;
-        $this->page = $page;
-        $this->data['animeBanner'] = $this->anime->orderByRaw("RAND()")->where('type2', '=', 'subbed')->take(1)->first();
-        $this->data['topPagesList'] = $this->page->where('position', '=', 'top')->orderBy('order')->get();
-        $this->data['bottomPagesList'] = $this->page->where('position', '=', 'bottom1')->orderBy('order')->get();
-        $this->data['bottomPagesList2'] = $this->page->where('position', '=', 'bottom2')->orderBy('order')->get();
-        $this->data['bottomPagesList3'] = $this->page->where('position', '=', 'bottom3')->orderBy('order')->get();
-        $this->data['options'] = $this->option->all();
+        $this->genre = $genre;
+        $this->producer = $producer;
+        $this->type = $type;
+        $this->mirror = $mirror;
+        $this->meta = $meta;
     }
 
-    public function getSubbedAnimeList($letter = '')
+    /**
+     * Route anime.
+     *
+     * @param Request $request
+     *
+     * @return \Illuminate\View\View
+     */
+    public function getIndex(Request $request)
     {
-        if (!$letter) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', 'a%')
-                ->where('type2', '<>', 'dubbed')
-                ->orderBy('title', 'ASC')->get();
-        } elseif ($letter === '0-9') {
-            $this->data['animes'] = $anime = $this->anime
-                ->whereRaw("title NOT REGEXP '^[[:alpha:]]'")
-                ->where('type2', '<>', 'dubbed')
-                ->orderBy('title', 'ASC')->get();
-        } elseif (preg_match('/^([a-z])$/', $letter) === 1) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', $letter.'%')
-                ->where('type2', '<>', 'dubbed')
-                ->orderBy('title', 'ASC')->get();
-        } else {
-            return redirect()->back();
-        }
-        $this->data['pageTitle'] = $pageTitle = "Watch Anime Online / Subbed Anime List | Watch Anime Online Free";
-        $this->data['metaTitle'] = "Subbed Anime List for Free | Watch Anime Online Free just in Animecenter.tv";
-        $this->data['metaDesc'] = $pageTitle . "!. Watch English Subbed. Watch English Sub, Download " .
-            "Anime for free. Watch Online English Subbed Online for Free only at Anime Center";
-        $this->data['metaKey'] = "Anime Subbed, Watch Anime, Download Anime, Watch Anime on iphone, Anime for Free";
+        $this->data['query'] = $request->except('page');
+        $this->data['animes'] = $this->anime->searchBy($this->data['query'], $request);
+        $this->data['classifications'] = $this->classification->all();
+        $this->data['genres'] = $this->genre->all();
+        $this->data['producers'] = $this->producer->all();
+        $this->data['types'] = $this->type->all();
+        $this->data['currentURL'] = $this->getCurrentURL();
+        $this->data['years'] = $this->anime->getYears();
+        $this->data['meta'] = $this->meta->whereRoute('anime')->orderBy('route')
+            ->firstOrFail(['title', 'keywords', 'description']);
 
-        return view('anime.list-subbed', $this->data);
+        return view('app.anime.index', $this->data);
     }
 
-    public function getDubbedAnimeList($letter = '')
+    /**
+     * Get anime by slug.
+     * Route anime/watch/{animeSlug}.
+     *
+     * @param string $animeSlug
+     *
+     * @return \Illuminate\View\View
+     */
+    public function getAnime($animeSlug = '')
     {
-        if (!$letter) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', 'a%')
-                ->where('type2', '=', 'dubbed')
-                ->orderBy('title', 'ASC')->get();
-        } elseif ($letter === '0-9') {
-            $this->data['animes'] = $anime = $this->anime
-                ->whereRaw("title NOT REGEXP '^[[:alpha:]]'")
-                ->where('type2', '=', 'dubbed')
-                ->orderBy('title', 'ASC')->get();
-        } elseif (preg_match('/^([a-z])$/', $letter) === 1) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', $letter.'%')
-                ->where('type2', '=', 'dubbed')
-                ->orderBy('title', 'ASC')->get();
-        } else {
-            return redirect()->back();
-        }
-        $this->data['pageTitle'] = $pageTitle = "Watch Anime Online / Dubbed Anime List | Watch Anime Online Free";
-        $this->data['metaTitle'] = "Dubbed Anime List for Free | Watch Anime Online Free just in Animecenter.tv";
-        $this->data['metaDesc'] = $pageTitle . "!. Watch English Dubbed. Watch English Dub, Download " .
-            "Anime for free. Watch Online English Dubbed Online for Free only at Anime Center";
-        $this->data['metaKey'] = "Anime Dubbed, Watch Anime, Download Anime, Watch Anime on iphone, Anime for Free";
+        $this->data['anime'] = $anime = $this->anime->getBySlug($animeSlug);
+        $this->data['producersCount'] = $anime['producers']->count() - 1;
+        $this->data['genresCount'] = $anime['genres']->count() - 1;
+        $this->data['latestEpisode'] = $this->episode->getLatestEpisode($anime['id']);
+        $this->data['meta'] = $this->meta->whereRoute('anime/watch/{animeSlug}')->orderBy('route')
+            ->firstOrFail(['title', 'keywords', 'description'])->replaceAll('$1', $anime->title);
 
-        return view('anime.list-dubbed', $this->data);
+        return view('app.anime.show', $this->data);
     }
 
-    public function getBrowseSubbed($letter = '')
+    /**
+     * Get episode by anime slug and by episode number.
+     * Route anime/watch/{animeSlug}/episode/{episodeNumber}/{translation}.
+     *
+     * @param string $animeSlug
+     * @param int    $episodeNumber
+     * @param string $translation
+     *
+     * @return \Illuminate\View\View
+     */
+    public function getEpisode($animeSlug = '', $episodeNumber = 0, $translation = 'all')
     {
-        if (!$letter) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', 'a%')
-                ->where('type2', '<>', 'dubbed')
-                ->orderBy('title', 'ASC')->paginate(20);
-        } elseif ($letter === '0-9') {
-            $this->data['animes'] = $anime = $this->anime
-                ->whereRaw("title NOT REGEXP '^[[:alpha:]]'")
-                ->where('type2', '<>', 'dubbed')
-                ->orderBy('title', 'ASC')->paginate(20);
-        } elseif (preg_match('/^([a-z])$/', $letter) === 1) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', $letter.'%')
-                ->where('type2', '<>', 'dubbed')
-                ->orderBy('title', 'ASC')->paginate(20);
-        } else {
-            return redirect()->back();
-        }
-        $this->data['pageTitle'] = $pageTitle = "Watch Anime Online / Subbed Anime List | Watch Anime Online Free";
-        $this->data['metaTitle'] = "Subbed Anime List for Free | Watch Anime Online Free just in Animecenter.tv";
-        $this->data['metaDesc'] = $pageTitle . "!. Watch English Subbed. Watch English Sub, Download " .
-            "Anime for free. Watch Online English Subbed Online for Free only at Anime Center";
-        $this->data['metaKey'] = "Anime Subbed, Watch Anime, Download Anime, Watch Anime on iphone, Anime for Free";
+        $this->data['anime'] = $anime = $this->anime->getMirrors($animeSlug, $episodeNumber, $translation);
+        $this->data['prevEpisode'] = $this->episode->getPreviousEpisode($anime['id'], $anime['episode']->number);
+        $this->data['nextEpisode'] = $this->episode->getNextEpisode($anime['id'], $anime['episode']->number);
+        $this->data['meta'] = $this->meta->whereRoute('anime/watch/{animeSlug}/episode/{episodeNumber}/{translation}')
+            ->orderBy('route')->firstOrFail(['title', 'keywords', 'description'])
+            ->replaceAll('$1', $anime['title']);
 
-        return view('anime.browse-subbed', $this->data);
+        return view('app.episodes.show', $this->data);
     }
 
-    public function getBrowseDubbed($letter = '')
+    /**
+     * Get mirror for current anime episode.
+     * Route anime/watch/{animeSlug}/episode/{episodeNumber}/{translation}/{mirrorID}.
+     *
+     * @param string $animeSlug
+     * @param int    $episodeNumber
+     * @param string $translation
+     * @param string $mirrorID
+     *
+     * @return \Illuminate\View\View
+     */
+    public function getMirror($animeSlug = '', $episodeNumber = 0, $translation = '', $mirrorID = '')
     {
-        if (!$letter) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', 'a%')
-                ->where('type2', '=', 'dubbed')
-                ->orderBy('title', 'ASC')->paginate(20);
-        } elseif ($letter === '0-9') {
-            $this->data['animes'] = $anime = $this->anime
-                ->whereRaw("title NOT REGEXP '^[[:alpha:]]'")
-                ->where('type2', '=', 'dubbed')
-                ->orderBy('title', 'ASC')->paginate(20);
-        } elseif (preg_match('/^([a-z])$/', $letter) === 1) {
-            $this->data['animes'] = $anime = $this->anime
-                ->where('title', 'like', $letter.'%')
-                ->where('type2', '=', 'dubbed')
-                ->orderBy('title', 'ASC')->paginate(20);
-        } else {
-            return redirect()->back();
-        }
-        $this->data['pageTitle'] = $pageTitle = "Watch Anime Online / Dubbed Anime List | Watch Anime Online Free";
-        $this->data['metaTitle'] = "Dubbed Anime List for Free | Watch Anime Online Free just in Animecenter.tv";
-        $this->data['metaDesc'] = $pageTitle . "!. Watch English Dubbed. Watch English Dub, Download " .
-            "Anime for free. Watch Online English Dubbed Online for Free only at Anime Center";
-        $this->data['metaKey'] = "Anime Dubbed, Watch Anime, Download Anime, Watch Anime on iphone, Anime for Free";
+        $this->data['currentMirror'] = $this->mirror->with(['mirrorSource'])->whereId($mirrorID)->first();
+        $this->data['anime'] = $anime = $this->anime->getMirrors($animeSlug, $episodeNumber, $translation);
+        $this->data['nextEpisode'] = $this->episode->getNextEpisode($anime['id'], $anime->episode->number);
+        $this->data['prevEpisode'] = $this->episode->getPreviousEpisode($anime['id'], $anime->episode->number);
+        $this->data['meta'] = $this->meta->whereRoute(
+            'anime/watch/{animeSlug}/episode/{episodeNumber}/{translation}/{mirrorID}'
+        )->orderBy('route')->firstOrFail(['title', 'keywords', 'description'])
+            ->replaceAll('$1', $anime['title'].' '.$anime->episode->number);
 
-        return view('anime.browse-dubbed', $this->data);
+        return view('app.episodes.show', $this->data);
     }
 
-    public function getSubbedAnime($slug)
+    /**
+     * Get random anime.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function getRandom()
     {
-        $this->data['anime'] = $anime = $this->anime->with(['episodes' => function ($query) {
-            $query->orderBy('order', 'asc');
-        }])->where('slug', '=', $slug)->where('type2', '<>', 'dubbed')->firstOrFail();
-        $this->anime->where('id', '=', $anime['id'])->update(['visits' => $anime['visits'] + 1]);
-        $this->data['lastEpisode'] = $this->episode->where('anime_id', '=', $anime['id'])
-            ->where('not_yet_aired', '=', null)
-            ->orWhere('anime_id', '=', $anime['id'])
-            ->where('not_yet_aired', '=', '')
-            ->orderBy('id', 'DESC')
-            ->first();
-        $this->data['genres'] = explode(",", $anime['genres']);
-        $this->data['type'] = explode(",", $anime['type']);
-        $countSimilar = $this->anime->where('id', '=', $anime['id'])
-            ->where('genres', '=', $anime['genres'])
-            ->take(12)->count();
-        $this->data['animeSimilar'] = $this->anime->where('id', '=', $anime['id'])
-            ->where('genres', '=', $anime['genres'])
-            ->take(rand(0, $countSimilar))
-            ->get();
-        switch ($anime['age']) {
-            case "Anyone":
-                $color = "#EE82EE";
-                break;
-            case "Teen +17":
-                $color = "#CC0033";
-                break;
-            case "Teen +18":
-                $color = "#FF0000";
-                break;
-            default:
-                $color = "#C86464";
-        }
-        $this->data['color'] = $color;
-        $this->data['relations'] = $this->getRelated($anime);
-        $this->data['pageTitle'] = $title = $anime['title'] . " English Subbed/Dubbed in HD";
-        $this->data['metaTitle'] = "Watch {$anime['title']} Online for Free | Watch Anime Online Free";
-        $this->data['metaDesc'] = "Watch " . $title . " Online. Download " . $title . " Online. Watch " .
-            $anime['title'] . " English Sub/Dub HD";
-        $this->data['metaKey'] = "Watch {$anime['title']}, {$anime['title']} English Subbed/Dubbed, Download " .
-            "{$anime['title']} English Subbed/Dubbed, Watch {$anime['title']} Online";
-
-        return view('anime.show', $this->data);
+        return $this->anime->getRandom();
     }
 
-    public function getDubbedAnime($slug)
+    public function getCurrentURL($letter = '')
     {
-        $this->data['anime'] = $anime = $this->anime->with(['episodes' => function ($query) {
-            $query->orderBy('order', 'asc');
-        }])->where('slug', '=', $slug)->where('type2', '=', 'dubbed')->firstOrFail();
-        $this->anime->where('id', '=', $anime['id'])->update(['visits' => $anime['visits'] + 1]);
-        $this->data['lastEpisode'] = $this->episode->where('anime_id', '=', $anime['id'])
-            ->where('not_yet_aired', '=', null)
-            ->orWhere('anime_id', '=', $anime['id'])
-            ->where('not_yet_aired', '=', '')
-            ->orderBy('id', 'DESC')
-            ->first();
-        $this->data['genres'] = explode(",", $anime['genres']);
-        $this->data['type'] = explode(",", $anime['type']);
-        $countSimilar = $this->anime->where('id', '=', $anime['id'])
-            ->where('genres', '=', $anime['genres'])
-            ->take(12)->count();
-        $this->data['animeSimilar'] = $this->anime->where('id', '=', $anime['id'])
-            ->where('genres', '=', $anime['genres'])
-            ->take(rand(0, $countSimilar))
-            ->get();
-        switch ($anime['age']) {
-            case "Anyone":
-                $color = "#EE82EE";
-                break;
-            case "Teen +17":
-                $color = "#CC0033";
-                break;
-            case "Teen +18":
-                $color = "#FF0000";
-                break;
-            default:
-                $color = "#C86464";
-        }
-        $this->data['color'] = $color;
-        $this->data['animeBanner'] = $this->anime->orderByRaw("RAND()")->where('type2', '=', 'subbed')->take(1)->first();
-        $this->data['relations'] = $this->getRelated($anime);
-        $this->data['pageTitle'] = $title = $anime['title'] . " English Subbed/Dubbed in HD";
-        $this->data['metaTitle'] = "Watch {$anime['title']} Online for Free | Watch Anime Online Free";
-        $this->data['metaDesc'] = "Watch " . $title . " Online. Download " . $title . " Online. Watch " .
-            $anime['title'] . " English Sub/Dub HD";
-        $this->data['metaKey'] = "Watch {$anime['title']}, {$anime['title']} English Subbed/Dubbed, Download " .
-            "{$anime['title']} English Subbed/Dubbed, Watch {$anime['title']} Online";
-
-        return view('anime.show', $this->data);
-    }
-
-    public function getRelated(Anime $anime)
-    {
-        $relations = [
-            'prequel', 'sequel', 'story', 'side_story', 'spin_off', 'alternative', 'other'
-        ];
-        $related = [];
-        foreach ($relations as $relation) {
-            if ($anime[$relation]) {
-                $related[$relation] = $this->anime
-                    ->where('id', '=', explode(',', $anime[$relation])[0])->first();
-            }
-        }
-        return $related;
-    }
-
-    public function getLatest()
-    {
-        $this->data['animes'] = $this->anime->orderBy('id', 'DESC')->paginate(20);
-        $this->data['pageTitle'] = "Latest Anime | Watch Anime Online Free";
-        $this->data['metaTitle'] = "Watch the Latest Anime for Free Online | Watch Anime Online Free just in Animecenter.tv";
-        $this->data['metaDesc'] = "Watch Latest Anime added to the site! Latest English Subbed/Dubbed Anime";
-        $this->data['metaKey'] = "Latest Anime, Watch Latest Anime, Watch on Iphone, Watch Anime" .
-            " Online, English Subbed/Dubbed";
-
-        return view('anime.latest', $this->data);
+        return $letter ? str_replace('/'.$letter, '', request()->path()) : request()->path();
     }
 }

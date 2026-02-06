@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace AC\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\User;
+use AC\Http\Controllers\Controller;
+use AC\Models\Meta;
+use AC\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Validator;
@@ -23,32 +24,45 @@ class AuthController extends Controller
 
     use AuthenticatesAndRegistersUsers, ThrottlesLogins;
 
-    private $username = 'username';
-    private $loginPath = 'login';
-    private $redirectTo = 'admin';
-    private $redirectPath = 'admin';
+    protected $username = 'username';
+
+    /**
+     * Where to redirect users after login / registration.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/dashboard';
+
+    protected $redirectPath = '/dashboard';
+
+    /**
+     * @var Meta
+     */
+    private $meta;
 
     /**
      * Create a new authentication controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Meta $meta)
     {
-        $this->middleware('guest', ['except' => 'getLogout']);
+        $this->middleware($this->guestMiddleware(), ['except' => 'getLogout']);
+        $this->meta = $meta;
     }
 
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
+     * @param array $data
+     *
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'username' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users',
+            'email'    => 'required|email|max:255|unique:users',
             'password' => 'required|confirmed|min:6',
         ]);
     }
@@ -56,15 +70,42 @@ class AuthController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
+     * @param array $data
+     *
      * @return User
      */
     protected function create(array $data)
     {
         return User::create([
             'username' => $data['username'],
-            'email' => $data['email'],
+            'email'    => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+
+    /**
+     * Show the application registration form.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getRegister()
+    {
+        $this->data['meta'] = $this->meta->whereRoute('/')->orderBy('route')
+            ->firstOrFail(['title', 'keywords', 'description']);
+
+        return view('app.auth.register', $this->data);
+    }
+
+    /**
+     * Show the application login form.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getLogin()
+    {
+        $this->data['meta'] = $this->meta->whereRoute('/')->orderBy('route')
+            ->firstOrFail(['title', 'keywords', 'description']);
+
+        return view('app.auth.login', $this->data);
     }
 }

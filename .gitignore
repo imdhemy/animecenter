@@ -1,4 +1,8 @@
-/components
-/node_modules
 /vendor
+/node_modules
+/public/uploads
 .env
+.vagrant
+_ide_helper.php
+*.map
+.idea
